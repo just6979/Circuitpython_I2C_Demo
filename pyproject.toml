@@ -3,4 +3,8 @@ name = "featherrevtft-i2c-demo-cpy"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "adafruit-circuitpython-is31fl3741>=1.5.6",
+    "adafruit-circuitpython-sht4x>=1.0.25",
+    "adafruit-circuitpython-spa06-003>=1.1.0",
+]
