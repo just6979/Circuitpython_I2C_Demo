@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Black">
+    <option name="sdkName" value="uv (FeatherRevTFT-I2C-Demo.cpy)" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="uv (FeatherRevTFT_I2C_Demo.cpy)" project-jdk-type="Python SDK" />
+</project>
