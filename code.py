@@ -13,6 +13,7 @@ import microcontroller
 from adafruit_is31fl3741.adafruit_rgbmatrixqt import Adafruit_RGBMatrixQT
 from adafruit_spa06_003 import SPA06_003
 from rainbowio import colorwheel
+from wiichuck.nunchuk import Nunchuk
 
 # pause to let serial connect
 time.sleep(2)
@@ -70,6 +71,14 @@ try:
 except ValueError:
     print(f'No IS31FL3741 found at {is31_addr:#x}')
 
+nunchuk = None
+nunchuk_addr = 0x52
+try:
+    nunchuk = Nunchuk(i2c, nunchuk_addr)
+    print(f'Found Wii Nunchuck at {nunchuk_addr:#x}')
+except ValueError:
+    print(f'No Wii Nunchuck found at {nunchuk_addr:#x}')
+
 print('Warming up devices')
 time.sleep(1)
 
@@ -78,6 +87,9 @@ wheel_offset = 0
 
 env_read_delay = 5
 last_env_read = 0
+
+wii_read_delay = 0.002
+last_wii_read = 0
 
 while True:
     now = time.monotonic()
@@ -108,6 +120,14 @@ while True:
                     f'{sht_temp * (9 / 5) + 32:.1f}°F, '
                     f'{sht_humidity:.0f} %RH, '
                 )
+
+    if now - last_wii_read >= wii_read_delay:
+        last_wii_read = now
+        if nunchuk:
+            x, y = nunchuk.joystick
+            ax, ay, az = nunchuk.acceleration
+            c, z = nunchuk.buttons
+            print(f'J[{x:>3},{y:>3}] A[{ax:>3},{ay:>3},{az:>3}] [{'Z' if z else ' '}{'C' if c else ' '}]')
 
     if is31:
         for y in range(9):

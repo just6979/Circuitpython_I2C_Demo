@@ -187,6 +187,16 @@ wheels = [
 ]
 
 [[package]]
+name = "circuitpython-wiichuck"
+version = "0.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "adafruit-blinka" },
+    { name = "adafruit-circuitpython-busdevice" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/33/af/d6b8e765d6c73cb5cbde9dbb3b1190060bff94971ab70edb32dec01a58cc/circuitpython-wiichuck-0.0.3.tar.gz", hash = "sha256:5d7dfce3825e8e578b6958f1cb14f7a37fc7ee569e45cff5716fcf3c284502b0", size = 31138, upload-time = "2021-08-14T15:53:41.612Z" }
+
+[[package]]
 name = "featherrevtft-i2c-demo-cpy"
 version = "0.1.0"
 source = { virtual = "." }
@@ -195,6 +205,7 @@ dependencies = [
     { name = "adafruit-circuitpython-max1704x" },
     { name = "adafruit-circuitpython-sht4x" },
     { name = "adafruit-circuitpython-spa06-003" },
+    { name = "circuitpython-wiichuck" },
 ]
 
 [package.metadata]
@@ -203,6 +214,7 @@ requires-dist = [
     { name = "adafruit-circuitpython-max1704x", specifier = ">=1.0.15" },
     { name = "adafruit-circuitpython-sht4x", specifier = ">=1.0.25" },
     { name = "adafruit-circuitpython-spa06-003", specifier = ">=1.1.0" },
+    { name = "circuitpython-wiichuck", specifier = ">=0.0.3" },
 ]
 
 [[package]]
