@@ -17,7 +17,7 @@ from rainbowio import colorwheel
 # pause to let serial connect
 time.sleep(2)
 print(
-    f'MCU: '
+    f'{board.board_id}: '
     f'UID 0x{microcontroller.cpu.uid.hex()}, '
     f'{microcontroller.cpu.frequency / 1000 / 1000} MHz, '
     f'{microcontroller.cpu.temperature} °C'
@@ -74,10 +74,10 @@ print('Warming up devices')
 time.sleep(1)
 
 if is31: is31.enable = True
+wheel_offset = 0
 
 env_read_delay = 5
 last_env_read = 0
-wheel_offset = 0
 
 while True:
     now = time.monotonic()
@@ -86,7 +86,7 @@ while True:
         last_env_read = now
 
         max17.wake()
-        print(f'{max17.cell_voltage:.2f} Volts, {max17.cell_percent:.1f} %')
+        print(f'{now}ms, {max17.cell_voltage:.2f} Volts, {max17.cell_percent:.1f} %')
         max17.hibernate()
 
         if sht41 and spa06:
@@ -115,5 +115,3 @@ while True:
                 is31.pixel(12 - x, 8 - y, colorwheel((y * 13 + x) * 2 + wheel_offset))
         wheel_offset += 1
         is31.show()
-
-    time.sleep(0.0001)
