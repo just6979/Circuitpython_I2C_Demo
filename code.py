@@ -8,6 +8,7 @@ import adafruit_is31fl3741
 import adafruit_max1704x
 import adafruit_sht4x
 import board
+import busio
 import microcontroller
 from adafruit_is31fl3741.adafruit_rgbmatrixqt import Adafruit_RGBMatrixQT
 from adafruit_spa06_003 import SPA06_003
@@ -22,7 +23,18 @@ print(
     f'{microcontroller.cpu.temperature} °C'
 )
 
-i2c = board.I2C()
+i2c_clock_options = {
+    'Standard': 100_000,
+    'Fast': 400_000,
+    'Fast2': 800_000,
+    'Fast Plus': 1_000_000,
+    'High Speed': 1_700_000,
+    'High Speed Plus': 3_400_000,
+    'Ultra Fast': 5_000_000
+}
+i2c_clock = i2c_clock_options['Fast']
+i2c = busio.I2C(board.SCL, board.SDA, frequency=i2c_clock)
+print(f'Opened I2C bus at {i2c_clock // 1000}KHz')
 i2c.try_lock()
 devs = [hex(dev) for dev in i2c.scan()]
 print(f'Found {len(devs)} I2C devices: {devs}')
