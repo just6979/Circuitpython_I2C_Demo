@@ -5,6 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.14"
 dependencies = [
     "adafruit-circuitpython-is31fl3741>=1.5.6",
+    "adafruit-circuitpython-max1704x>=1.0.15",
     "adafruit-circuitpython-sht4x>=1.0.25",
     "adafruit-circuitpython-spa06-003>=1.1.0",
 ]
