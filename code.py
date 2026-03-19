@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: Copyright (c) 2020 ladyada for Adafruit Industries
-#
-# SPDX-License-Identifier: MIT
-
 import time
 
 import adafruit_is31fl3741
