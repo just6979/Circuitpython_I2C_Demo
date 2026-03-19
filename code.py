@@ -15,6 +15,24 @@ from adafruit_spa06_003 import SPA06_003
 from rainbowio import colorwheel
 from wiichuck.nunchuk import Nunchuk
 
+try_max17 = True
+try_sht41 = True
+try_spa06 = True
+try_nunchuck = True
+try_is31 = True
+
+max17_addr = 0x36
+sht41_addr = 0x44
+spa06_addr = 0x77
+is31_addr = 0x30
+nunchuk_addr = 0x52
+
+max17 = None
+sht41 = None
+spa06 = None
+is31 = None
+nunchuk = None
+
 # pause to let serial connect
 time.sleep(2)
 print(
@@ -33,51 +51,56 @@ i2c_clock_options = {
     'High Speed Plus': 3_400_000,
     'Ultra Fast': 5_000_000
 }
-i2c_clock = i2c_clock_options['Fast']
+# The ESP32-S3 and all the devices on test here seem to handle Fast Plus just fine
+# Scan works on High Speed, but it freezes when trying to access any of the devices
+i2c_clock = i2c_clock_options['Fast Plus']
 i2c = busio.I2C(board.SCL, board.SDA, frequency=i2c_clock)
 print(f'Opened I2C bus at {i2c_clock // 1000}KHz')
 i2c.try_lock()
+print(f'Locked I2C bus to scan for devices')
 devs = [hex(dev) for dev in i2c.scan()]
 print(f'Found {len(devs)} I2C devices: {devs}')
 i2c.unlock()
+print('Unlocked I2C bus')
 
-max17_addr = 0x36
-max17 = adafruit_max1704x.MAX17048(i2c, max17_addr)
-print(f'Found MAX1704x at {max17_addr:#x}, Ver: {hex(max17.chip_version)}, ID: {hex(max17.chip_id)}')
+if try_max17:
+    print(f'Trying MAX17 at {max17_addr:#x}')
+    max17 = adafruit_max1704x.MAX17048(i2c, max17_addr)
+    print(f'Found MAX1704x at {max17_addr:#x}, Ver: {hex(max17.chip_version)}, ID: {hex(max17.chip_id)}')
 
-sht41 = None
-sht41_addr = 0x44
-try:
-    sht41 = adafruit_sht4x.SHT4x(i2c, sht41_addr)
-    print(f'Found SHT41 at {sht41_addr:#x}, ID: 0x{hex(sht41.serial_number)}')
-except ValueError:
-    print(f'No SHT41 found at {sht41_addr:#x}')
+if try_sht41:
+    print(f'Trying SHT41 at {sht41_addr:#x}')
+    try:
+        sht41 = adafruit_sht4x.SHT4x(i2c, sht41_addr)
+        print(f'Found SHT41 at {sht41_addr:#x}, ID: 0x{hex(sht41.serial_number)}')
+    except ValueError:
+        print(f'No SHT41 found at {sht41_addr:#x}')
 
-spa06 = None
-spa06_addr = 0x77
-try:
-    spa06 = SPA06_003.over_i2c(i2c, spa06_addr)
-    print(f'Found SPA06-003 at {spa06_addr:#x}, ID: {hex(spa06.chip_id)}')
-except ValueError:
-    print(f'No SPA06-003 found at {spa06_addr:#x}')
+if try_spa06:
+    print(f'Trying SPA06 at {spa06_addr:#x}')
+    try:
+        spa06 = SPA06_003.over_i2c(i2c, spa06_addr)
+        print(f'Found SPA06-003 at {spa06_addr:#x}, ID: {hex(spa06.chip_id)}')
+    except ValueError:
+        print(f'No SPA06-003 found at {spa06_addr:#x}')
 
-is31 = None
-is31_addr = 0x30
-try:
-    is31 = Adafruit_RGBMatrixQT(i2c, is31_addr, allocate=adafruit_is31fl3741.PREFER_BUFFER)
-    print(f'Found IS31FL3741 at {is31_addr:#x}')
-    is31.set_led_scaling(0x01)
-    is31.global_current = 0xFF
-except ValueError:
-    print(f'No IS31FL3741 found at {is31_addr:#x}')
+if try_is31:
+    print(f'Trying IS31 at {is31_addr:#x}')
+    try:
+        is31 = Adafruit_RGBMatrixQT(i2c, is31_addr, allocate=adafruit_is31fl3741.PREFER_BUFFER)
+        print(f'Found IS31FL3741 at {is31_addr:#x}')
+        is31.set_led_scaling(0x01)
+        is31.global_current = 0xFF
+    except ValueError:
+        print(f'No IS31FL3741 found at {is31_addr:#x}')
 
-nunchuk = None
-nunchuk_addr = 0x52
-try:
-    nunchuk = Nunchuk(i2c, nunchuk_addr)
-    print(f'Found Wii Nunchuck at {nunchuk_addr:#x}')
-except ValueError:
-    print(f'No Wii Nunchuck found at {nunchuk_addr:#x}')
+if try_nunchuck:
+    print(f'Trying Nunchuck at {nunchuk_addr:#x}')
+    try:
+        nunchuk = Nunchuk(i2c, nunchuk_addr)
+        print(f'Found Wii Nunchuck at {nunchuk_addr:#x}')
+    except ValueError:
+        print(f'No Wii Nunchuck found at {nunchuk_addr:#x}')
 
 print('Warming up devices')
 time.sleep(1)
@@ -97,9 +120,10 @@ while True:
     if now - last_env_read >= env_read_delay:
         last_env_read = now
 
-        max17.wake()
-        print(f'{now}ms, {max17.cell_voltage:.2f} Volts, {max17.cell_percent:.1f} %')
-        max17.hibernate()
+        if max17:
+            max17.wake()
+            print(f'{now}ms, {max17.cell_voltage:.2f} Volts, {max17.cell_percent:.1f} %')
+            max17.hibernate()
 
         if sht41 and spa06:
             if spa06.temperature_data_ready and spa06.pressure_data_ready:
