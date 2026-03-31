@@ -31,6 +31,8 @@ nunchuk = None
 
 # pause to let serial connect
 time.sleep(2)
+
+print('Setting up...')
 print(
     f'{board.board_id}: '
     f'UID 0x{microcontroller.cpu.uid.hex()}, '
@@ -49,7 +51,7 @@ i2c_clock_options = {
 }
 # The ESP32-S3 and all the devices on test here seem to handle Fast Plus just fine
 # Scan works on High Speed, but it freezes when trying to access any of the devices
-i2c_clock = i2c_clock_options['Fast Plus']
+i2c_clock = i2c_clock_options['Fast']
 i2c = busio.I2C(board.SCL, board.SDA, frequency=i2c_clock)
 print(f'Opened I2C bus at {i2c_clock // 1000}KHz')
 i2c.try_lock()
@@ -89,6 +91,7 @@ if try_is31:
         is31.global_current = 0xFF
     except ValueError:
         print(f'No IS31FL3741 found at {is31_addr:#x}')
+if is31: is31.enable = True
 
 if try_nunchuck:
     print(f'Trying Nunchuck at {nunchuk_addr:#x}')
@@ -101,14 +104,20 @@ if try_nunchuck:
 print('Warming up devices')
 time.sleep(1)
 
-if is31: is31.enable = True
-wheel_offset = 0
-
+# check the environment every 5 seconds
 env_read_delay = 5
 last_env_read = 0
 
+# update the led matrix at 60Hz
+led_update_delay = 0.016
+last_led_update = 0
+wheel_offset = 0
+
+# read nunchucks at 500Hz
 wii_read_delay = 0.002
 last_wii_read = 0
+
+print('Starting')
 
 while True:
     now = time.monotonic()
@@ -118,7 +127,7 @@ while True:
 
         if max17:
             max17.wake()
-            print(f'{now}ms, {max17.cell_voltage:.2f} Volts, {max17.cell_percent:.1f} %')
+            print(f'{now}s, {max17.cell_voltage:.2f}V, {max17.cell_percent:.1f}%')
             max17.hibernate()
 
         if sht41 and spa06:
