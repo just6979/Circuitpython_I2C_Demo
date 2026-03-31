@@ -1,12 +1,13 @@
 [project]
-name = "featherrevtft-i2c-demo-cpy"
+name = "feather_rev_tft-i2c-demo"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.14"
 dependencies = [
-    "adafruit-circuitpython-is31fl3741>=1.5.6",
-    "adafruit-circuitpython-max1704x>=1.0.15",
-    "adafruit-circuitpython-sht4x>=1.0.25",
-    "adafruit-circuitpython-spa06-003>=1.1.0",
+    "adafruit-circuitpython-is31fl3741>=1.5.7",
+    "adafruit-circuitpython-max1704x>=1.0.16",
+    "adafruit-circuitpython-neopixel>=6.4.1",
+    "adafruit-circuitpython-sht4x>=1.0.26",
+    "adafruit-circuitpython-spa06-003>=1.1.1",
     "circuitpython-wiichuck>=0.0.3",
 ]
