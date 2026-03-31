@@ -117,6 +117,14 @@ wheel_offset = 0
 wii_read_delay = 0.002
 last_wii_read = 0
 
+jx = jy = 127
+ax = ay = az = 0
+jz = jc = False
+
+pixel_x = 6
+pixel_y = 4
+old_x = old_y = 0
+
 print('Starting')
 
 while True:
@@ -150,17 +158,22 @@ while True:
                     f'{sht_humidity:.0f} %RH, '
                 )
 
-    if now - last_wii_read >= wii_read_delay:
-        last_wii_read = now
-        if nunchuk:
-            x, y = nunchuk.joystick
+    if nunchuk:
+        if now - last_wii_read >= wii_read_delay:
+            last_wii_read = now
+            jx, jy = nunchuk.joystick
             ax, ay, az = nunchuk.acceleration
-            c, z = nunchuk.buttons
-            print(f'J[{x:>3},{y:>3}] A[{ax:>3},{ay:>3},{az:>3}] [{'Z' if z else ' '}{'C' if c else ' '}]')
+            bc, bz = nunchuk.buttons
+            print(f'J[{jx:>3},{jy:>3}] A[{ax:>3},{ay:>3},{az:>3}] [{'Z' if bz else ' '}{'C' if bc else ' '}]')
 
-    if is31:
-        for y in range(9):
-            for x in range(13):
-                is31.pixel(12 - x, 8 - y, colorwheel((y * 13 + x) * 2 + wheel_offset))
-        wheel_offset += 1
-        is31.show()
+    if is31 and nunchuk:
+        if now - last_led_update >= led_update_delay:
+            last_led_update = now
+            old_x = pixel_x
+            old_y = pixel_y
+            pixel_x = (12 * (jx - 127) // 255) + 6
+            pixel_y = -(8 * (jy - 127) // 255) + 4
+            print(f'[{pixel_x}, {pixel_y}]')
+            is31.pixel(old_x, old_y, 0x000000)
+            is31.pixel(pixel_x, pixel_y, 0xFFFFFF)
+            is31.show()
