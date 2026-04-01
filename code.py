@@ -1,44 +1,43 @@
 import time
 
-import adafruit_is31fl3741
-import adafruit_max1704x
-import adafruit_sht4x
 import board
 import busio
 import microcontroller
+from adafruit_is31fl3741 import PREFER_BUFFER
 from adafruit_is31fl3741.adafruit_rgbmatrixqt import Adafruit_RGBMatrixQT
+from adafruit_max1704x import MAX17048
+from adafruit_sht4x import SHT4x
 from adafruit_spa06_003 import SPA06_003
-from rainbowio import colorwheel
 from wiichuck.nunchuk import Nunchuk
 
-try_max17 = True
-try_sht41 = True
-try_spa06 = True
-try_nunchuck = True
-try_is31 = True
+try_max1704 = True
+try_sht4x = not True
+try_spa06_003 = not True
+try_nunchuck = not True
+try_is31fl3741 = not True
 
-max17_addr = 0x36
-sht41_addr = 0x44
-spa06_addr = 0x77
-is31_addr = 0x30
+max17048_addr = 0x36
+sht4x_addr = 0x44
+spa06_003_addr = 0x77
+is31fl3741_addr = 0x30
 nunchuk_addr = 0x52
 
-max17 = None
-sht41 = None
-spa06 = None
-is31 = None
+max17048 = None
+sht4x = None
+spa06_003 = None
+is31fl3741 = None
 nunchuk = None
 
 # pause to let serial connect
 time.sleep(2)
 
-print('Setting up...')
 print(
     f'{board.board_id}: '
     f'UID 0x{microcontroller.cpu.uid.hex()}, '
     f'{microcontroller.cpu.frequency / 1000 / 1000} MHz, '
     f'{microcontroller.cpu.temperature} °C'
 )
+print('Setting up...')
 
 i2c_clock_options = {
     'Standard': 100_000,
@@ -61,37 +60,37 @@ print(f'Found {len(devs)} I2C devices: {devs}')
 i2c.unlock()
 print('Unlocked I2C bus')
 
-if try_max17:
-    print(f'Trying MAX17 at {max17_addr:#x}')
-    max17 = adafruit_max1704x.MAX17048(i2c, max17_addr)
-    print(f'Found MAX1704x at {max17_addr:#x}, Ver: {hex(max17.chip_version)}, ID: {hex(max17.chip_id)}')
+if try_max1704:
+    print(f'Trying MAX17048 at {max17048_addr:#x}')
+    max17048 = MAX17048(i2c, max17048_addr)
+    print(f'Found MAX17048 at {max17048_addr:#x}, Ver: {hex(max17048.chip_version)}, ID: {hex(max17048.chip_id)}')
 
-if try_sht41:
-    print(f'Trying SHT41 at {sht41_addr:#x}')
+if try_sht4x:
+    print(f'Trying SHT4x at {sht4x_addr:#x}')
     try:
-        sht41 = adafruit_sht4x.SHT4x(i2c, sht41_addr)
-        print(f'Found SHT41 at {sht41_addr:#x}, ID: 0x{hex(sht41.serial_number)}')
+        sht4x = SHT4x(i2c, sht4x_addr)
+        print(f'Found SHT4x at {sht4x_addr:#x}, ID: 0x{hex(sht4x.serial_number)}')
     except ValueError:
-        print(f'No SHT41 found at {sht41_addr:#x}')
+        print(f'No SHT4x found at {sht4x_addr:#x}')
 
-if try_spa06:
-    print(f'Trying SPA06 at {spa06_addr:#x}')
+if try_spa06_003:
+    print(f'Trying SPA06-003 at {spa06_003_addr:#x}')
     try:
-        spa06 = SPA06_003.over_i2c(i2c, spa06_addr)
-        print(f'Found SPA06-003 at {spa06_addr:#x}, ID: {hex(spa06.chip_id)}')
+        spa06_003 = SPA06_003.over_i2c(i2c, spa06_003_addr)
+        print(f'Found SPA06-003 at {spa06_003_addr:#x}, ID: {hex(spa06_003.chip_id)}')
     except ValueError:
-        print(f'No SPA06-003 found at {spa06_addr:#x}')
+        print(f'No SPA06-003 found at {spa06_003_addr:#x}')
 
-if try_is31:
-    print(f'Trying IS31 at {is31_addr:#x}')
+if try_is31fl3741:
+    print(f'Trying IS31FL3741 at {is31fl3741_addr:#x}')
     try:
-        is31 = Adafruit_RGBMatrixQT(i2c, is31_addr, allocate=adafruit_is31fl3741.PREFER_BUFFER)
-        print(f'Found IS31FL3741 at {is31_addr:#x}')
-        is31.set_led_scaling(0x01)
-        is31.global_current = 0xFF
+        is31fl3741 = Adafruit_RGBMatrixQT(i2c, is31fl3741_addr, allocate=PREFER_BUFFER)
+        print(f'Found IS31FL3741 at {is31fl3741_addr:#x}')
+        is31fl3741.set_led_scaling(0x01)
+        is31fl3741.global_current = 0xFF
     except ValueError:
-        print(f'No IS31FL3741 found at {is31_addr:#x}')
-if is31: is31.enable = True
+        print(f'No IS31FL3741 found at {is31fl3741_addr:#x}')
+if is31fl3741: is31fl3741.enable = True
 
 if try_nunchuck:
     print(f'Trying Nunchuck at {nunchuk_addr:#x}')
@@ -105,7 +104,7 @@ print('Warming up devices')
 time.sleep(1)
 
 # check the environment every 5 seconds
-env_read_delay = 5
+env_read_delay = 10
 last_env_read = 0
 
 # update the led matrix at 60Hz
@@ -133,25 +132,27 @@ while True:
     if now - last_env_read >= env_read_delay:
         last_env_read = now
 
-        if max17:
-            max17.wake()
-            print(f'{now}s, {max17.cell_voltage:.2f}V, {max17.cell_percent:.1f}%')
-            max17.hibernate()
+        print(f'{now}s: MCU Temp: {microcontroller.cpu.temperature} °C')
 
-        if sht41 and spa06:
-            if spa06.temperature_data_ready and spa06.pressure_data_ready:
-                sht_temp, sht_humidity = sht41.measurements
+        if max17048:
+            max17048.wake()
+            print(f'{now}s: {max17048.cell_voltage:.2f} V, {max17048.cell_percent:.1f}%')
+            max17048.hibernate()
+
+        if sht4x and spa06_003:
+            if spa06_003.temperature_data_ready and spa06_003.pressure_data_ready:
+                sht_temp, sht_humidity = sht4x.measurements
                 # print(f'SHT4x: {sht_temp:.1f} °C, SPA06: {spa.temperature:.1f} °C')
-                avg_temp = (sht_temp + spa06.temperature) / 2.0
+                avg_temp = (sht_temp + spa06_003.temperature) / 2.0
                 print(
                     f'{avg_temp:.1f}°C, '
                     f'{avg_temp * (9 / 5) + 32:.1f}°F, '
                     f'{sht_humidity:.0f} %RH, '
-                    f'{spa06.pressure} hPa'
+                    f'{spa06_003.pressure} hPa'
                 )
             else:
                 print(f'SPA06 not ready, showing only SHT41 data')
-                sht_temp, sht_humidity = sht41.measurements
+                sht_temp, sht_humidity = sht4x.measurements
                 print(
                     f'{sht_temp:.1f}°C, '
                     f'{sht_temp * (9 / 5) + 32:.1f}°F, '
@@ -166,7 +167,7 @@ while True:
             bc, bz = nunchuk.buttons
             print(f'J[{jx:>3},{jy:>3}] A[{ax:>3},{ay:>3},{az:>3}] [{'Z' if bz else ' '}{'C' if bc else ' '}]')
 
-    if is31 and nunchuk:
+    if is31fl3741 and nunchuk:
         if now - last_led_update >= led_update_delay:
             last_led_update = now
             old_x = pixel_x
@@ -174,6 +175,6 @@ while True:
             pixel_x = (12 * (jx - 127) // 255) + 6
             pixel_y = -(8 * (jy - 127) // 255) + 4
             print(f'[{pixel_x}, {pixel_y}]')
-            is31.pixel(old_x, old_y, 0x000000)
-            is31.pixel(pixel_x, pixel_y, 0xFFFFFF)
-            is31.show()
+            is31fl3741.pixel(old_x, old_y, 0x000000)
+            is31fl3741.pixel(pixel_x, pixel_y, 0xFFFFFF)
+            is31fl3741.show()
