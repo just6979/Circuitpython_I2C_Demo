@@ -3,6 +3,8 @@ import time
 import board
 import busio
 import microcontroller
+from adafruit_ble import BLERadio, Advertisement
+from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
 from adafruit_is31fl3741 import PREFER_BUFFER
 from adafruit_is31fl3741.adafruit_rgbmatrixqt import Adafruit_RGBMatrixQT
 from adafruit_max1704x import MAX17048
@@ -15,6 +17,7 @@ try_sht4x = not True
 try_spa06_003 = not True
 try_nunchuck = not True
 try_is31fl3741 = not True
+try_ble = True
 
 max17048_addr = 0x36
 sht4x_addr = 0x44
@@ -27,6 +30,7 @@ sht4x = None
 spa06_003 = None
 is31fl3741 = None
 nunchuk = None
+ble = None
 
 # pause to let serial connect
 time.sleep(2)
@@ -100,8 +104,9 @@ if try_nunchuck:
     except ValueError:
         print(f'No Wii Nunchuck found at {nunchuk_addr:#x}')
 
-print('Warming up devices')
-time.sleep(1)
+if try_ble:
+    ble = BLERadio()
+    print(f'Enabling BLE radio: {ble.name}')
 
 # check the environment every 5 seconds
 env_read_delay = 10
@@ -115,6 +120,10 @@ wheel_offset = 0
 # read nunchucks at 500Hz
 wii_read_delay = 0.002
 last_wii_read = 0
+
+ble_scanning = False
+found = set()
+responses = set()
 
 jx = jy = 127
 ax = ay = az = 0
@@ -178,3 +187,42 @@ while True:
             is31fl3741.pixel(old_x, old_y, 0x000000)
             is31fl3741.pixel(pixel_x, pixel_y, 0xFFFFFF)
             is31fl3741.show()
+
+    if ble and not ble_scanning:
+        ble_scanning = True
+        print('Scanning BLE')
+        scan_start_time = time.monotonic()
+        for advert in ble.start_scan(
+                ProvideServicesAdvertisement, Advertisement,
+                buffer_size=1024,
+                extended=True,
+                timeout=5,
+        ):
+
+            addr = advert.address
+            if advert.scan_response and addr not in responses:
+                responses.add(addr)
+            elif not advert.scan_response and addr not in found:
+                found.add(addr)
+            else:
+                continue
+
+            # data = advert.data_dict
+            #
+            # switchbot_macs = ["e5:90:03:06:15:2f", "e8:76:c6:46:43:15"]
+            # mac = addr.address_bytes.hex(':')
+            # if mac in switchbot_macs:
+            #     print(mac, end=' ')
+            #     print("SwitchBot")
+            #     for (key, val) in data.items():
+            #         if key == 1:
+            #             continue
+            #         string_val = ''
+            #         for c in val:
+            #             string_val += f'{c} '
+            #         print(f'{key}: {string_val}')
+
+        print(responses)
+        print(found)
+
+        ble_scanning = False
