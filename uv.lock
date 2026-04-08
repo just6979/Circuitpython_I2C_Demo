@@ -33,6 +33,33 @@ wheels = [
 ]
 
 [[package]]
+name = "adafruit-blinka-displayio"
+version = "2.3.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "adafruit-blinka" },
+    { name = "adafruit-circuitpython-bitmap-font" },
+    { name = "adafruit-circuitpython-typing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/14/75/79e1441558a659b4b4326e64ca5bc2ad76eaf07f9f2221e55bcacfc7862b/adafruit_blinka_displayio-2.3.2.tar.gz", hash = "sha256:cf7c5c4e1724e8b82f092ca81ca51fafebe85b6e47774462f4051342bac4d754", size = 90252, upload-time = "2026-02-24T21:55:24.882Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/c3/790621925c73f8d21c00ee3d09e36e8a7d15f66dd73dcd5b56d6c14e62be/adafruit_blinka_displayio-2.3.2-py3-none-any.whl", hash = "sha256:f1d5b41eca6a1e9e43c04ee734b8f27666c2bcc8045cc1d7acf2b4631daa3558", size = 83610, upload-time = "2026-02-24T21:55:23.646Z" },
+]
+
+[[package]]
+name = "adafruit-circuitpython-bitmap-font"
+version = "2.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "adafruit-blinka" },
+    { name = "adafruit-blinka-displayio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/31/76/f830c83d1ea06601c76fb951fd1670bf78537a32f5497325a24d64460c0a/adafruit_circuitpython_bitmap_font-2.4.1.tar.gz", hash = "sha256:c9454690b99e18106b74ffcdd47766aa108d9351d3155d3a109c8d3d12a83bf5", size = 843341, upload-time = "2026-03-27T19:07:51.176Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/1e/6f26a7e31be4cf27c64dcb64f5eff1c44eb12e1e2eb45ac215ca170504d4/adafruit_circuitpython_bitmap_font-2.4.1-py3-none-any.whl", hash = "sha256:3dba204cce6b4f007c70cf72b2ef6f0bf5a2dd29d35ef569843cb3414d9788ef", size = 15780, upload-time = "2026-03-27T19:07:50.253Z" },
+]
+
+[[package]]
 name = "adafruit-circuitpython-ble"
 version = "10.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -70,6 +97,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5a/59/17e37a9f5642997d638d43623a81111e895b6ae4ed2732b6026a7ccf25fe/adafruit_circuitpython_connectionmanager-3.1.7.tar.gz", hash = "sha256:6da7f2707bfc89e45ceb4f949c330bbe1986dbf79a48f937e021c35d1d969eee", size = 33824, upload-time = "2026-03-27T19:09:00.127Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/73/c5/d68a26ba148889a5cac3bed31b9354a4868a455f4aeef4b5d8b9bf22b69a/adafruit_circuitpython_connectionmanager-3.1.7-py3-none-any.whl", hash = "sha256:157e67d927fdee4fdc41ed54e573c86f9b9b2ff4a9ef052b67976a7e7a18bb66", size = 7754, upload-time = "2026-03-27T19:08:58.59Z" },
+]
+
+[[package]]
+name = "adafruit-circuitpython-displayio-ssd1306"
+version = "3.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "adafruit-blinka" },
+    { name = "adafruit-blinka-displayio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/be/86/d2d4989c635468f30d9a0dd07eb73143a8421f010ff8e7ba3f354aaeb7b0/adafruit_circuitpython_displayio_ssd1306-3.0.5.tar.gz", hash = "sha256:efdeee662eb13a987b20ced34359c3e7452766c43f4b42afb3db93a18be56a89", size = 25681, upload-time = "2026-03-27T18:57:59.812Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a2/62/fa4bec558295f2456bfee4898408a8daa694dc59a21c68497c56ada848c8/adafruit_circuitpython_displayio_ssd1306-3.0.5-py3-none-any.whl", hash = "sha256:9bb3903d4c2f6c49c0e7447f59379d65a4d00448ffb163c325d1fc96df0822e4", size = 6041, upload-time = "2026-03-27T18:57:58.809Z" },
 ]
 
 [[package]]
@@ -195,6 +235,19 @@ wheels = [
 ]
 
 [[package]]
+name = "adafruit-circuitpython-st7789"
+version = "2.1.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "adafruit-blinka" },
+    { name = "adafruit-blinka-displayio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3d/a3/841a3fb8526aab93e79cb635c1caf0b92d8e8a14e9dafc431578e53641c8/adafruit_circuitpython_st7789-2.1.4.tar.gz", hash = "sha256:7bcaee1745b72da59f203dd73b46a72c4ccedbdc75e48f9b8304dd9b22bb2513", size = 25494, upload-time = "2026-03-27T19:05:15.219Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/29/811a0fae72029f267696ca28aaafb0e61e806384e6939434521fec3e379c/adafruit_circuitpython_st7789-2.1.4-py3-none-any.whl", hash = "sha256:5d6d304be6f681a9c1fd0a5bc8c96e3967cfecc01954b489855fbab73d784296", size = 4723, upload-time = "2026-03-27T19:05:13.642Z" },
+]
+
+[[package]]
 name = "adafruit-circuitpython-typing"
 version = "1.12.3"
 source = { registry = "https://pypi.org/simple" }
@@ -296,22 +349,26 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "adafruit-circuitpython-ble" },
+    { name = "adafruit-circuitpython-displayio-ssd1306" },
     { name = "adafruit-circuitpython-is31fl3741" },
     { name = "adafruit-circuitpython-max1704x" },
     { name = "adafruit-circuitpython-neopixel" },
     { name = "adafruit-circuitpython-sht4x" },
     { name = "adafruit-circuitpython-spa06-003" },
+    { name = "adafruit-circuitpython-st7789" },
     { name = "circuitpython-wiichuck" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "adafruit-circuitpython-ble", specifier = ">=10.1.2" },
+    { name = "adafruit-circuitpython-displayio-ssd1306", specifier = ">=3.0.5" },
     { name = "adafruit-circuitpython-is31fl3741", specifier = ">=1.5.7" },
     { name = "adafruit-circuitpython-max1704x", specifier = ">=1.0.16" },
     { name = "adafruit-circuitpython-neopixel", specifier = ">=6.4.1" },
     { name = "adafruit-circuitpython-sht4x", specifier = ">=1.0.26" },
     { name = "adafruit-circuitpython-spa06-003", specifier = ">=1.1.1" },
+    { name = "adafruit-circuitpython-st7789", specifier = ">=2.1.4" },
     { name = "circuitpython-wiichuck", specifier = ">=0.0.3" },
 ]
 

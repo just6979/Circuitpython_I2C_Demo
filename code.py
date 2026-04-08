@@ -1,7 +1,8 @@
 import time
 
+import adafruit_displayio_ssd1306
 import board
-import busio
+import displayio
 import microcontroller
 from adafruit_ble import BLERadio, Advertisement
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
@@ -10,30 +11,35 @@ from adafruit_is31fl3741.adafruit_rgbmatrixqt import Adafruit_RGBMatrixQT
 from adafruit_max1704x import MAX17048
 from adafruit_sht4x import SHT4x
 from adafruit_spa06_003 import SPA06_003
+from i2cdisplaybus import I2CDisplayBus
 from wiichuck.nunchuk import Nunchuk
 
+start_time = time.monotonic()
+
 try_max1704 = True
-try_sht4x = not True
-try_spa06_003 = not True
-try_nunchuck = not True
-try_is31fl3741 = not True
+try_sht4x = True
+try_spa06_003 = True
+try_nunchuck = True
+try_is31fl3741 = True
+try_ssd1306 = not True
 try_ble = True
 
-max17048_addr = 0x36
-sht4x_addr = 0x44
-spa06_003_addr = 0x77
-is31fl3741_addr = 0x30
-nunchuk_addr = 0x52
+do_ble_scan = not True
+
+MAX17048_ADDR = 0x36
+SHT4X_ADDR = 0x44
+SPA06_003_ADDR = 0x77
+IS31FL3741_ADDR = 0x30
+NUNCHUK_ADDR = 0x52
+SCREEN_ADDRESS = 0x3C
 
 max17048 = None
 sht4x = None
 spa06_003 = None
 is31fl3741 = None
 nunchuk = None
+ssd1306 = None
 ble = None
-
-# pause to let serial connect
-time.sleep(2)
 
 print(
     f'{board.board_id}: '
@@ -41,84 +47,89 @@ print(
     f'{microcontroller.cpu.frequency / 1000 / 1000} MHz, '
     f'{microcontroller.cpu.temperature} °C'
 )
-print('Setting up...')
+print('Starting up...')
 
-i2c_clock_options = {
-    'Standard': 100_000,
-    'Fast': 400_000,
-    'Fast2': 800_000,
-    'Fast Plus': 1_000_000,
-    'High Speed': 1_700_000,
-    'High Speed Plus': 3_400_000,
-    'Ultra Fast': 5_000_000
-}
-# The ESP32-S3 and all the devices on test here seem to handle Fast Plus just fine
-# Scan works on High Speed, but it freezes when trying to access any of the devices
-i2c_clock = i2c_clock_options['Fast']
-i2c = busio.I2C(board.SCL, board.SDA, frequency=i2c_clock)
-print(f'Opened I2C bus at {i2c_clock // 1000}KHz')
+i2c = board.I2C()
+print(f'Opened I2C bus')
 i2c.try_lock()
 print(f'Locked I2C bus to scan for devices')
-devs = [hex(dev) for dev in i2c.scan()]
-print(f'Found {len(devs)} I2C devices: {devs}')
+devs = [dev for dev in i2c.scan()]
+hex_devs = list(map(lambda dev: hex(dev), devs))
+print(f'Found {len(devs)} I2C devices: {hex_devs}')
 i2c.unlock()
 print('Unlocked I2C bus')
 
-if try_max1704:
-    print(f'Trying MAX17048 at {max17048_addr:#x}')
-    max17048 = MAX17048(i2c, max17048_addr)
-    print(f'Found MAX17048 at {max17048_addr:#x}, Ver: {hex(max17048.chip_version)}, ID: {hex(max17048.chip_id)}')
+if try_max1704 and MAX17048_ADDR in devs:
+    print(f'Trying MAX17048 at {MAX17048_ADDR:#x}')
+    try:
+        max17048 = MAX17048(i2c, MAX17048_ADDR)
+        print(f'Found MAX17048 at {MAX17048_ADDR:#x}, Ver: {hex(max17048.chip_version)}, ID: {hex(max17048.chip_id)}')
+    except ValueError:
+        print(f'No MAX17048 found at {MAX17048_ADDR:#x}')
 
 if try_sht4x:
-    print(f'Trying SHT4x at {sht4x_addr:#x}')
+    print(f'Trying SHT4x at {SHT4X_ADDR:#x}')
     try:
-        sht4x = SHT4x(i2c, sht4x_addr)
-        print(f'Found SHT4x at {sht4x_addr:#x}, ID: 0x{hex(sht4x.serial_number)}')
+        sht4x = SHT4x(i2c, SHT4X_ADDR)
+        print(f'Found SHT4x at {SHT4X_ADDR:#x}, ID: 0x{hex(sht4x.serial_number)}')
     except ValueError:
-        print(f'No SHT4x found at {sht4x_addr:#x}')
+        print(f'No SHT4x found at {SHT4X_ADDR:#x}')
 
 if try_spa06_003:
-    print(f'Trying SPA06-003 at {spa06_003_addr:#x}')
+    print(f'Trying SPA06-003 at {SPA06_003_ADDR:#x}')
     try:
-        spa06_003 = SPA06_003.over_i2c(i2c, spa06_003_addr)
-        print(f'Found SPA06-003 at {spa06_003_addr:#x}, ID: {hex(spa06_003.chip_id)}')
+        spa06_003 = SPA06_003.over_i2c(i2c, SPA06_003_ADDR)
+        print(f'Found SPA06-003 at {SPA06_003_ADDR:#x}, ID: {hex(spa06_003.chip_id)}')
     except ValueError:
-        print(f'No SPA06-003 found at {spa06_003_addr:#x}')
+        print(f'No SPA06-003 found at {SPA06_003_ADDR:#x}')
 
 if try_is31fl3741:
-    print(f'Trying IS31FL3741 at {is31fl3741_addr:#x}')
+    print(f'Trying IS31FL3741 at {IS31FL3741_ADDR:#x}')
     try:
-        is31fl3741 = Adafruit_RGBMatrixQT(i2c, is31fl3741_addr, allocate=PREFER_BUFFER)
-        print(f'Found IS31FL3741 at {is31fl3741_addr:#x}')
+        is31fl3741 = Adafruit_RGBMatrixQT(i2c, IS31FL3741_ADDR, allocate=PREFER_BUFFER)
+        print(f'Found IS31FL3741 at {IS31FL3741_ADDR:#x}')
         is31fl3741.set_led_scaling(0x01)
         is31fl3741.global_current = 0xFF
+        is31fl3741.enable = True
     except ValueError:
-        print(f'No IS31FL3741 found at {is31fl3741_addr:#x}')
-if is31fl3741: is31fl3741.enable = True
+        print(f'No IS31FL3741 found at {IS31FL3741_ADDR:#x}')
 
 if try_nunchuck:
-    print(f'Trying Nunchuck at {nunchuk_addr:#x}')
+    print(f'Trying Nunchuck at {NUNCHUK_ADDR:#x}')
     try:
-        nunchuk = Nunchuk(i2c, nunchuk_addr)
-        print(f'Found Wii Nunchuck at {nunchuk_addr:#x}')
+        nunchuk = Nunchuk(i2c, NUNCHUK_ADDR)
+        print(f'Found Wii Nunchuck at {NUNCHUK_ADDR:#x}')
     except ValueError:
-        print(f'No Wii Nunchuck found at {nunchuk_addr:#x}')
+        print(f'No Wii Nunchuck found at {NUNCHUK_ADDR:#x}')
 
 if try_ble:
-    ble = BLERadio()
-    print(f'Enabling BLE radio: {ble.name}')
+    try:
+        ble = BLERadio()
+        print(f'Enabling BLE radio: {ble.name}')
+    except:
+        print('No BLE radio found')
+
+onboard_display = None
+if try_ssd1306:
+    try:
+        displayio.release_displays()
+        spi_display_bus = I2CDisplayBus(i2c, device_address=SCREEN_ADDRESS)
+        onboard_display = adafruit_displayio_ssd1306.SSD1306(spi_display_bus, width=128, height=32)
+        onboard_display.rotation = 180
+        print(f'Found 128x32 OLED at {SCREEN_ADDRESS:#x}')
+    except ValueError as e:
+        print(f'No 128x32 OLED found at {SCREEN_ADDRESS:#x}')
 
 # check the environment every 5 seconds
-env_read_delay = 10
+ENV_READ_DELAY = 5
 last_env_read = 0
 
-# update the led matrix at 60Hz
-led_update_delay = 0.016
-last_led_update = 0
-wheel_offset = 0
+# update dispays at 60Hz
+DISPLAY_UPDATE_DELAY = 0.016
+last_display_update = 0
 
 # read nunchucks at 500Hz
-wii_read_delay = 0.002
+WII_READ_DELAY = 0.002
 last_wii_read = 0
 
 ble_scanning = False
@@ -133,52 +144,53 @@ pixel_x = 6
 pixel_y = 4
 old_x = old_y = 0
 
-print('Starting')
+print(f'Setup complete: {time.monotonic() - start_time}s')
 
 while True:
     now = time.monotonic()
 
-    if now - last_env_read >= env_read_delay:
+    if now - last_env_read >= ENV_READ_DELAY:
         last_env_read = now
 
-        print(f'{now}s: MCU Temp: {microcontroller.cpu.temperature} °C')
+        print(f'{now:.3f}s: MCU Temp: {microcontroller.cpu.temperature} °C', end='')
 
         if max17048:
             max17048.wake()
-            print(f'{now}s: {max17048.cell_voltage:.2f} V, {max17048.cell_percent:.1f}%')
+            print(f', Battery: {max17048.cell_voltage:.2f} V {max17048.cell_percent:.1f}%')
             max17048.hibernate()
+        else:
+            print()
 
         if sht4x and spa06_003:
             if spa06_003.temperature_data_ready and spa06_003.pressure_data_ready:
                 sht_temp, sht_humidity = sht4x.measurements
-                # print(f'SHT4x: {sht_temp:.1f} °C, SPA06: {spa.temperature:.1f} °C')
+                print(f'{now:.3f}s: SHT4x: {sht_temp:.1f} °C, SPA06: {spa.temperature:.1f} °C')
                 avg_temp = (sht_temp + spa06_003.temperature) / 2.0
                 print(
-                    f'{avg_temp:.1f}°C, '
-                    f'{avg_temp * (9 / 5) + 32:.1f}°F, '
-                    f'{sht_humidity:.0f} %RH, '
-                    f'{spa06_003.pressure} hPa'
+                    f'{now:.3f}s: {avg_temp:.1f}°C, {avg_temp * (9 / 5) + 32:.1f}°F, '
+                    f'{sht_humidity:.0f} %RH, {spa06_003.pressure} hPa'
                 )
             else:
-                print(f'SPA06 not ready, showing only SHT41 data')
+                print(f'{now:.3f}s: SPA06 not ready, showing only SHT41 data')
                 sht_temp, sht_humidity = sht4x.measurements
-                print(
-                    f'{sht_temp:.1f}°C, '
-                    f'{sht_temp * (9 / 5) + 32:.1f}°F, '
-                    f'{sht_humidity:.0f} %RH, '
-                )
+                print(f'{now:.3f}s: {sht_temp:.1f}°C, {sht_temp * (9 / 5) + 32:.1f}°F, {sht_humidity:.0f} %RH')
 
     if nunchuk:
-        if now - last_wii_read >= wii_read_delay:
+        if now - last_wii_read >= WII_READ_DELAY:
             last_wii_read = now
             jx, jy = nunchuk.joystick
             ax, ay, az = nunchuk.acceleration
             bc, bz = nunchuk.buttons
-            print(f'J[{jx:>3},{jy:>3}] A[{ax:>3},{ay:>3},{az:>3}] [{'Z' if bz else ' '}{'C' if bc else ' '}]')
+            print(
+                f'{now:.3f}s: '
+                f'[{'Z' if bz else ' '}{'C' if bc else ' '}] '
+                f'J {jx:>3},{jy:>3} '
+                f'A {ax:>3},{ay:>3},{az:>3}',
+            )
 
     if is31fl3741 and nunchuk:
-        if now - last_led_update >= led_update_delay:
-            last_led_update = now
+        if now - last_display_update >= DISPLAY_UPDATE_DELAY:
+            last_display_update = now
             old_x = pixel_x
             old_y = pixel_y
             pixel_x = (12 * (jx - 127) // 255) + 6
@@ -188,17 +200,16 @@ while True:
             is31fl3741.pixel(pixel_x, pixel_y, 0xFFFFFF)
             is31fl3741.show()
 
-    if ble and not ble_scanning:
-        ble_scanning = True
-        print('Scanning BLE')
-        scan_start_time = time.monotonic()
-        for advert in ble.start_scan(
-                ProvideServicesAdvertisement, Advertisement,
-                buffer_size=1024,
-                extended=True,
-                timeout=5,
-        ):
+    if ssd1306 and now - last_display_update >= DISPLAY_UPDATE_DELAY:
+        last_display_update = now
+        pass
 
+    if ble and do_ble_scan and not ble_scanning:
+        ble_scanning = True
+        print(f'{now}s: Scanning BLE')
+        scan_start_time = time.monotonic()
+        for advert in ble.start_scan(ProvideServicesAdvertisement, Advertisement,
+                                     buffer_size=2048, extended=True, timeout=5):
             addr = advert.address
             if advert.scan_response and addr not in responses:
                 responses.add(addr)
@@ -206,9 +217,7 @@ while True:
                 found.add(addr)
             else:
                 continue
-
             # data = advert.data_dict
-            #
             # switchbot_macs = ["e5:90:03:06:15:2f", "e8:76:c6:46:43:15"]
             # mac = addr.address_bytes.hex(':')
             # if mac in switchbot_macs:
@@ -221,8 +230,6 @@ while True:
             #         for c in val:
             #             string_val += f'{c} '
             #         print(f'{key}: {string_val}')
-
-        print(responses)
-        print(found)
-
+        # print(responses)
+        # print(found)
         ble_scanning = False
