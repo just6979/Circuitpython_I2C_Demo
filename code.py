@@ -58,55 +58,55 @@ i2c.unlock()
 print('Unlocked I2C bus')
 
 if try_max1704 and MAX17048_ADDR in devs:
-    print(f'Trying MAX17048 at {MAX17048_ADDR:#x}')
+    print(f'Trying MAX17048 at {MAX17048_ADDR:#X}')
     try:
         max17048 = MAX17048(i2c, MAX17048_ADDR)
-        print(f'Found MAX17048 at {MAX17048_ADDR:#x}, Ver: {hex(max17048.chip_version)}, ID: {hex(max17048.chip_id)}')
+        print(f'Found MAX17048 at {MAX17048_ADDR:#X}, Ver: {max17048.chip_version:#X}, ID: {max17048.chip_id:#X}')
     except ValueError:
-        print(f'No MAX17048 found at {MAX17048_ADDR:#x}')
+        print(f'No MAX17048 found at {MAX17048_ADDR:#X}')
 
 if try_sht4x:
-    print(f'Trying SHT4x at {SHT4X_ADDR:#x}')
+    print(f'Trying SHT4x at {SHT4X_ADDR:#X}')
     try:
         sht4x = SHT4x(i2c, SHT4X_ADDR)
-        print(f'Found SHT4x at {SHT4X_ADDR:#x}, ID: 0x{hex(sht4x.serial_number)}')
+        print(f'Found SHT4x at {SHT4X_ADDR:#X}, ID: 0x{hex(sht4x.serial_number)}')
     except ValueError:
-        print(f'No SHT4x found at {SHT4X_ADDR:#x}')
+        print(f'No SHT4x found at {SHT4X_ADDR:#X}')
 
 if try_spa06_003:
-    print(f'Trying SPA06-003 at {SPA06_003_ADDR:#x}')
+    print(f'Trying SPA06-003 at {SPA06_003_ADDR:#X}')
     try:
         spa06_003 = SPA06_003.over_i2c(i2c, SPA06_003_ADDR)
-        print(f'Found SPA06-003 at {SPA06_003_ADDR:#x}, ID: {hex(spa06_003.chip_id)}')
+        print(f'Found SPA06-003 at {SPA06_003_ADDR:#X}, ID: {hex(spa06_003.chip_id)}')
     except ValueError:
-        print(f'No SPA06-003 found at {SPA06_003_ADDR:#x}')
+        print(f'No SPA06-003 found at {SPA06_003_ADDR:#X}')
 
 if try_is31fl3741:
-    print(f'Trying IS31FL3741 at {IS31FL3741_ADDR:#x}')
+    print(f'Trying IS31FL3741 at {IS31FL3741_ADDR:#X}')
     try:
         is31fl3741 = Adafruit_RGBMatrixQT(i2c, IS31FL3741_ADDR, allocate=PREFER_BUFFER)
-        print(f'Found IS31FL3741 at {IS31FL3741_ADDR:#x}')
+        print(f'Found IS31FL3741 at {IS31FL3741_ADDR:#X}')
         is31fl3741.set_led_scaling(0x01)
         is31fl3741.global_current = 0xFF
         is31fl3741.enable = True
     except ValueError:
-        print(f'No IS31FL3741 found at {IS31FL3741_ADDR:#x}')
+        print(f'No IS31FL3741 found at {IS31FL3741_ADDR:#X}')
 
 if try_nunchuck:
-    print(f'Trying Nunchuck at {NUNCHUK_ADDR:#x}')
+    print(f'Trying Nunchuck at {NUNCHUK_ADDR:#X}')
     try:
         nunchuk = Nunchuk(i2c, NUNCHUK_ADDR)
-        print(f'Found Wii Nunchuck at {NUNCHUK_ADDR:#x}')
+        print(f'Found Wii Nunchuck at {NUNCHUK_ADDR:#X}')
     except ValueError:
-        print(f'No Wii Nunchuck found at {NUNCHUK_ADDR:#x}')
+        print(f'No Wii Nunchuck found at {NUNCHUK_ADDR:#X}')
 
 if try_lsm6dsox and LSM6DSOX_ADDR in devs:
-    print(f'Trying LSM6DS at {LSM6DSOX_ADDR:#x}')
+    print(f'Trying LSM6DS at {LSM6DSOX_ADDR:#X}')
     try:
         lsm6dsox = LSM6DSOX(i2c, LSM6DSOX_ADDR)
-        print(f'Found LSM6DS at {LSM6DSOX_ADDR:#x}, ID: {lsm6dsox.CHIP_ID}')
+        print(f'Found LSM6DS at {LSM6DSOX_ADDR:#X}, ID: {lsm6dsox.CHIP_ID}')
     except ValueError:
-        print(f'No LSM6DS found at {LSM6DSOX_ADDR:#x}')
+        print(f'No LSM6DS found at {LSM6DSOX_ADDR:#X}')
 
 if try_ble:
     try:
