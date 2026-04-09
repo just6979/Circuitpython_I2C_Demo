@@ -11,6 +11,7 @@ from adafruit_max1704x import MAX17048
 from adafruit_sht4x import SHT4x
 from adafruit_spa06_003 import SPA06_003
 from wiichuck.nunchuk import Nunchuk
+from adafruit_bme280 import basic as adafruit_bme280
 
 start_time = time.monotonic()
 
@@ -20,6 +21,7 @@ try_spa06_003 = True
 try_is31fl3741 = True
 try_nunchuck = True
 try_lsm6dsox = True
+try_bme280 = True
 
 MAX17048_ADDR = 0x36
 SHT4X_ADDR = 0x44
@@ -27,6 +29,7 @@ SPA06_003_ADDR = 0x77
 IS31FL3741_ADDR = 0x30
 NUNCHUK_ADDR = 0x52
 LSM6DSOX_ADDR = 0x6A
+BME280_ADDR = 0x76
 
 max17048 = None
 sht4x = None
@@ -34,6 +37,7 @@ spa06_003 = None
 is31fl3741 = None
 nunchuk = None
 lsm6dsox = None
+bme280 = None
 
 try_ble = True
 do_ble_scan = not True
@@ -108,6 +112,14 @@ if try_lsm6dsox and LSM6DSOX_ADDR in devs:
     except ValueError:
         print(f'No LSM6DS found at {LSM6DSOX_ADDR:#X}')
 
+if try_bme280 and BME280_ADDR in devs:
+    print(f'Trying BME280 at {BME280_ADDR:#X}')
+    try:
+        bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, BME280_ADDR)
+        print(f'Found BME280 at {BME280_ADDR:#X}')
+    except ValueError:
+        print(f'No BME280 found at {BME280_ADDR:#X}')
+
 if try_ble:
     try:
         ble = BLERadio()
@@ -115,8 +127,8 @@ if try_ble:
     except:
         print('No BLE radio found')
 
-# check the environment every 5 seconds
-ENV_READ_DELAY = 5
+# check the environment every 1 seconds
+ENV_READ_DELAY = 1
 last_env_read = 0
 
 # update dispays at 60Hz
@@ -170,7 +182,16 @@ while True:
                 sht_temp, sht_humidity = sht4x.measurements
                 print(f'{now:.3f}s: {sht_temp:.1f}°C, {sht_temp * (9 / 5) + 32:.1f}°F, {sht_humidity:.0f} %RH')
 
-    if nunchuk:
+        if bme280:
+            bme280.sea_level_pressure = 1031
+            print(
+                f'BME280: {bme280.temperature:3.2f}°C, '
+                f'{bme280.temperature * (9 / 5) + 32:3.1f}°F, '
+                f'{bme280.relative_humidity:3.2f}% RH, '
+                f'{bme280.pressure:4.2f} hPa, '
+                f'{bme280.altitude}m '
+            )
+
         if now - last_wii_read >= WII_READ_DELAY:
             last_wii_read = now
             jx, jy = nunchuk.joystick
