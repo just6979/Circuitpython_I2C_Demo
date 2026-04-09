@@ -1,8 +1,6 @@
 import time
 
-import adafruit_displayio_ssd1306
 import board
-import displayio
 import microcontroller
 from adafruit_ble import BLERadio, Advertisement
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
@@ -11,7 +9,6 @@ from adafruit_is31fl3741.adafruit_rgbmatrixqt import Adafruit_RGBMatrixQT
 from adafruit_max1704x import MAX17048
 from adafruit_sht4x import SHT4x
 from adafruit_spa06_003 import SPA06_003
-from i2cdisplaybus import I2CDisplayBus
 from wiichuck.nunchuk import Nunchuk
 
 start_time = time.monotonic()
@@ -21,7 +18,6 @@ try_sht4x = True
 try_spa06_003 = True
 try_nunchuck = True
 try_is31fl3741 = True
-try_ssd1306 = not True
 try_ble = True
 
 do_ble_scan = not True
@@ -38,7 +34,6 @@ sht4x = None
 spa06_003 = None
 is31fl3741 = None
 nunchuk = None
-ssd1306 = None
 ble = None
 
 print(
@@ -108,17 +103,6 @@ if try_ble:
         print(f'Enabling BLE radio: {ble.name}')
     except:
         print('No BLE radio found')
-
-onboard_display = None
-if try_ssd1306:
-    try:
-        displayio.release_displays()
-        spi_display_bus = I2CDisplayBus(i2c, device_address=SCREEN_ADDRESS)
-        onboard_display = adafruit_displayio_ssd1306.SSD1306(spi_display_bus, width=128, height=32)
-        onboard_display.rotation = 180
-        print(f'Found 128x32 OLED at {SCREEN_ADDRESS:#x}')
-    except ValueError as e:
-        print(f'No 128x32 OLED found at {SCREEN_ADDRESS:#x}')
 
 # check the environment every 5 seconds
 ENV_READ_DELAY = 5
