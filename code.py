@@ -6,6 +6,7 @@ from adafruit_ble import BLERadio, Advertisement
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
 from adafruit_is31fl3741 import PREFER_BUFFER
 from adafruit_is31fl3741.adafruit_rgbmatrixqt import Adafruit_RGBMatrixQT
+from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
 from adafruit_max1704x import MAX17048
 from adafruit_sht4x import SHT4x
 from adafruit_spa06_003 import SPA06_003
@@ -16,24 +17,26 @@ start_time = time.monotonic()
 try_max1704 = True
 try_sht4x = True
 try_spa06_003 = True
-try_nunchuck = True
 try_is31fl3741 = True
-try_ble = True
-
-do_ble_scan = not True
+try_nunchuck = True
+try_lsm6dsox = True
 
 MAX17048_ADDR = 0x36
 SHT4X_ADDR = 0x44
 SPA06_003_ADDR = 0x77
 IS31FL3741_ADDR = 0x30
 NUNCHUK_ADDR = 0x52
-SCREEN_ADDRESS = 0x3C
+LSM6DSOX_ADDR = 0x6A
 
 max17048 = None
 sht4x = None
 spa06_003 = None
 is31fl3741 = None
 nunchuk = None
+lsm6dsox = None
+
+try_ble = True
+do_ble_scan = not True
 ble = None
 
 print(
@@ -97,6 +100,14 @@ if try_nunchuck:
     except ValueError:
         print(f'No Wii Nunchuck found at {NUNCHUK_ADDR:#x}')
 
+if try_lsm6dsox and LSM6DSOX_ADDR in devs:
+    print(f'Trying LSM6DS at {LSM6DSOX_ADDR:#x}')
+    try:
+        lsm6dsox = LSM6DSOX(i2c, LSM6DSOX_ADDR)
+        print(f'Found LSM6DS at {LSM6DSOX_ADDR:#x}, ID: {lsm6dsox.CHIP_ID}')
+    except ValueError:
+        print(f'No LSM6DS found at {LSM6DSOX_ADDR:#x}')
+
 if try_ble:
     try:
         ble = BLERadio()
@@ -148,7 +159,7 @@ while True:
         if sht4x and spa06_003:
             if spa06_003.temperature_data_ready and spa06_003.pressure_data_ready:
                 sht_temp, sht_humidity = sht4x.measurements
-                print(f'{now:.3f}s: SHT4x: {sht_temp:.1f} °C, SPA06: {spa.temperature:.1f} °C')
+                print(f'{now:.3f}s: SHT4x: {sht_temp:.1f} °C, SPA06: {spa06_003.temperature:.1f} °C')
                 avg_temp = (sht_temp + spa06_003.temperature) / 2.0
                 print(
                     f'{now:.3f}s: {avg_temp:.1f}°C, {avg_temp * (9 / 5) + 32:.1f}°F, '
@@ -172,8 +183,8 @@ while True:
                 f'A {ax:>3},{ay:>3},{az:>3}',
             )
 
-    if is31fl3741 and nunchuk:
-        if now - last_display_update >= DISPLAY_UPDATE_DELAY:
+    if now - last_display_update >= DISPLAY_UPDATE_DELAY:
+        if is31fl3741 and nunchuk:
             last_display_update = now
             old_x = pixel_x
             old_y = pixel_y
@@ -184,9 +195,9 @@ while True:
             is31fl3741.pixel(pixel_x, pixel_y, 0xFFFFFF)
             is31fl3741.show()
 
-    if ssd1306 and now - last_display_update >= DISPLAY_UPDATE_DELAY:
-        last_display_update = now
-        pass
+        if lsm6dsox:
+            print("AX:% 3.2f AY: % 3.2f AZ: % 3.2f m/s^2, " % lsm6dsox.acceleration, end='')
+            print("GX:% 3.2f GY: % 3.2f GZ: % 3.2F °/s" % lsm6dsox.gyro)
 
     if ble and do_ble_scan and not ble_scanning:
         ble_scanning = True
