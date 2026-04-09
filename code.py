@@ -192,6 +192,7 @@ while True:
                 f'{bme280.altitude}m '
             )
 
+    if nunchuk:
         if now - last_wii_read >= WII_READ_DELAY:
             last_wii_read = now
             jx, jy = nunchuk.joystick
