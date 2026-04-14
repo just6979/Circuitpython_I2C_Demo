@@ -104,7 +104,7 @@ if try_nunchuck:
     except ValueError:
         print(f'No Wii Nunchuck found at {NUNCHUK_ADDR:#X}')
 
-if try_lsm6dsox and LSM6DSOX_ADDR in devs:
+if try_lsm6dsox:
     print(f'Trying LSM6DS at {LSM6DSOX_ADDR:#X}')
     try:
         lsm6dsox = LSM6DSOX(i2c, LSM6DSOX_ADDR)
@@ -112,7 +112,7 @@ if try_lsm6dsox and LSM6DSOX_ADDR in devs:
     except ValueError:
         print(f'No LSM6DS found at {LSM6DSOX_ADDR:#X}')
 
-if try_bme280 and BME280_ADDR in devs:
+if try_bme280:
     print(f'Trying BME280 at {BME280_ADDR:#X}')
     try:
         bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, BME280_ADDR)
@@ -168,23 +168,33 @@ while True:
         else:
             print()
 
-        if sht4x and spa06_003:
+        if sht4x:
+            sht_temp, sht_humidity = sht4x.measurements
+            print(f'{now:.3f}s: SHT4x: '
+                  f'{sht_temp:.1f}°C, {sht_temp * (9 / 5) + 32:.1f}°F, '
+                  f'{sht_humidity:.0f} %RH'
+                  )
+
+        if spa06_003:
             if spa06_003.temperature_data_ready and spa06_003.pressure_data_ready:
-                sht_temp, sht_humidity = sht4x.measurements
-                print(f'{now:.3f}s: SHT4x: {sht_temp:.1f} °C, SPA06: {spa06_003.temperature:.1f} °C')
-                avg_temp = (sht_temp + spa06_003.temperature) / 2.0
                 print(
-                    f'{now:.3f}s: {avg_temp:.1f}°C, {avg_temp * (9 / 5) + 32:.1f}°F, '
-                    f'{sht_humidity:.0f} %RH, {spa06_003.pressure} hPa'
+                    f'{now:.3f}s: '
+                    f'SPA06: {spa06_003.temperature:.1f}°C, '
+                    f'{spa06_003.temperature * (9 / 5) + 32:.1f}°F, '
+                    f'{spa06_003.pressure} hPa'
                 )
-            else:
-                print(f'{now:.3f}s: SPA06 not ready, showing only SHT41 data')
-                sht_temp, sht_humidity = sht4x.measurements
-                print(f'{now:.3f}s: {sht_temp:.1f}°C, {sht_temp * (9 / 5) + 32:.1f}°F, {sht_humidity:.0f} %RH')
+
+                if sht4x:
+                    avg_temp = (sht4x.measurements[0] + spa06_003.temperature) / 2.0
+                    print(f'{now:.3f}s: '
+                          f'SHT4x/SPA06 Average: {avg_temp:.1f}°C, '
+                          f'{avg_temp * (9 / 5) + 32:.1f}°F'
+                          )
 
         if bme280:
             bme280.sea_level_pressure = 1031
             print(
+                f'{now:.3f}s: '
                 f'BME280: {bme280.temperature:3.2f}°C, '
                 f'{bme280.temperature * (9 / 5) + 32:3.1f}°F, '
                 f'{bme280.relative_humidity:3.2f}% RH, '
